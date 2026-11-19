@@ -270,15 +270,35 @@ function takePhoto() {
   });
 }
 
-// contador de rendimiento: abre el juego con ?fps al final de la dirección
-if (new URLSearchParams(location.search).has('fps')) {
-  const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;font:12px monospace;color:#fff;background:#0007;padding:4px 8px;border-radius:6px;pointer-events:none';
-  document.body.appendChild(el);
+// panel de pruebas de rendimiento (temporal): FPS + calidad. Quitar cuando termine la prueba.
+{
+  const store = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch { /* nada */ } };
+  const read = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const box = document.createElement('div'); box.id = 'perf';
+  box.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;display:flex;gap:4px;align-items:center;font:12px monospace;color:#fff;touch-action:manipulation';
+  const mk = (txt, on) => {
+    const b = document.createElement('button');
+    b.textContent = txt; b.style.cssText = 'font:12px monospace;color:#fff;background:#0007;border:1px solid #fff4;border-radius:6px;padding:3px 7px;cursor:pointer';
+    b.onclick = on; box.appendChild(b); return b;
+  };
+  const info = document.createElement('span');
+  info.style.cssText = 'background:#0007;padding:3px 8px;border-radius:6px;pointer-events:none;white-space:nowrap';
+  let showFps = read('tt-fps') !== '0';
+  const bFps = mk('FPS', () => { showFps = !showFps; store('tt-fps', showFps ? '1' : '0'); paint(); });
+  box.appendChild(info);
+  const cur = new URLSearchParams(location.search).get('q') || read('tt-quality') || 'auto';
+  const opts = [['auto', 'Auto'], ['low', 'Baja'], ['high', 'Alta']].map(([v, l]) => mk(l, () => { store('tt-quality', v === 'auto' ? null : v); location.search = ''; }));
+  function paint() {
+    info.style.display = showFps ? '' : 'none'; bFps.style.opacity = showFps ? 1 : 0.55;
+    opts.forEach((b, i) => { b.style.background = ['auto', 'low', 'high'][i] === cur ? '#f2a869cc' : '#0007'; });
+  }
+  paint(); document.body.appendChild(box);
   let n = 0, t0 = performance.now(), worst = 0, prev = t0;
-  (function loop(now) { n++; worst = Math.max(worst, now - prev); prev = now;
-    if (now - t0 > 1000) { el.textContent = Math.round(n * 1000 / (now - t0)) + ' fps · peor cuadro ' + Math.round(worst) + ' ms · ' + (q.mobile ? 'calidad baja' : 'calidad alta'); n = 0; worst = 0; t0 = now; }
-    requestAnimationFrame(loop); })(t0);
+  (function loop(now) {
+    n++; worst = Math.max(worst, now - prev); prev = now;
+    if (now - t0 > 1000) { info.textContent = Math.round(n * 1000 / (now - t0)) + ' fps · peor ' + Math.round(worst) + ' ms · ' + (q.mobile ? 'baja' : 'alta'); n = 0; worst = 0; t0 = now; }
+    requestAnimationFrame(loop);
+  })(t0);
 }
 addEventListener('pagehide', persist);
 document.addEventListener('visibilitychange', () => { if (document.hidden) persist(); });

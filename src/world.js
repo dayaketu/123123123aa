@@ -107,8 +107,9 @@ export const shared = {
 export function pickQuality() {
   const mobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 560;
   const dpr = window.devicePixelRatio || 1;
-  const force = new URLSearchParams(location.search).get('q');   // ?q=high o ?q=low para probar
-  return (force ? force === 'low' : mobile)
+  let force = new URLSearchParams(location.search).get('q');   // ?q=high o ?q=low
+  try { force = force || localStorage.getItem('tt-quality'); } catch { /* sin almacenamiento */ }
+  return (force === 'low' || force === 'high' ? force === 'low' : mobile)
     ? { mobile, hi: 2, far: 5, grass: 1, grassGrid: 30, blades: 3, dpr: Math.min(dpr, 1.5), fogFar: 300 }
     : { mobile, hi: 3, far: 7, grass: 1, grassGrid: 46, blades: 4, dpr: Math.min(dpr, 2), fogFar: 450 };
 }

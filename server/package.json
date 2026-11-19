@@ -1,0 +1,9 @@
+{
+  "name": "tierra-tibia-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Servidor de presencia opcional: viajeros, cantos y luces. Sin chat, sin cuentas, sin datos personales.",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "ws": "^8.18.0" }
+}

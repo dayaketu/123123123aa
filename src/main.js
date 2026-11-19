@@ -270,6 +270,16 @@ function takePhoto() {
   });
 }
 
+// contador de rendimiento: abre el juego con ?fps al final de la dirección
+if (new URLSearchParams(location.search).has('fps')) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;font:12px monospace;color:#fff;background:#0007;padding:4px 8px;border-radius:6px;pointer-events:none';
+  document.body.appendChild(el);
+  let n = 0, t0 = performance.now(), worst = 0, prev = t0;
+  (function loop(now) { n++; worst = Math.max(worst, now - prev); prev = now;
+    if (now - t0 > 1000) { el.textContent = Math.round(n * 1000 / (now - t0)) + ' fps · peor cuadro ' + Math.round(worst) + ' ms · ' + (q.mobile ? 'calidad baja' : 'calidad alta'); n = 0; worst = 0; t0 = now; }
+    requestAnimationFrame(loop); })(t0);
+}
 addEventListener('pagehide', persist);
 document.addEventListener('visibilitychange', () => { if (document.hidden) persist(); });
 // ganchos para pruebas automáticas
